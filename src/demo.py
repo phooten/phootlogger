@@ -12,9 +12,68 @@ class Test:
         """!
         @brief      This test will show what each output is
         """
-        self.logger.error("error message here.")
-        self.logger.warning("warning message here.")
-        self.logger.info("normal message here.")
+        self.logger.error("Error message here.")
+        self.logger.warning("Warning message here.")
+        self.logger.info("Info message here.")
+
+        self.logger.set_debug_mode(False)
+        self.logger.debug("This debug message will not show up.")
+
+        self.logger.set_debug_mode(True)
+        self.logger.debug("Debug message here.")
+
+    # --------------------------------------------------------------------------
+    def hiding_fields_demo(self):
+        """!
+        @brief
+        """
+        self.logger.set_debug_mode(True)
+
+        print("\nNo fields hidden.")
+        print("------------------------------------------")
+        self.logger.error("Error message here.")
+        self.logger.warning("Warning message here.")
+        self.logger.info("Info message here.")
+        self.logger.debug("Debug message here.")
+
+        print("\nTimestamps hidden.")
+        print("------------------------------------------")
+        # Hide section
+        self.logger.hide_logs_timestamps(True)
+        # Print logs
+        self.logger.error("Error message here.")
+        self.logger.warning("Warning message here.")
+        self.logger.info("Info message here.")
+        self.logger.debug("Debug message here.")
+        # Show section
+        self.logger.hide_logs_timestamps(False)
+
+
+        print("\nSource ( class/method name ) Hidden.")
+        print("------------------------------------------")
+        # Hide section
+        self.logger.hide_logs_source(True)
+        # Print logs
+        self.logger.error("Error message here.")
+        self.logger.warning("Warning message here.")
+        self.logger.info("Info message here.")
+        self.logger.debug("Debug message here.")
+        # Show section
+        self.logger.hide_logs_timestamps(False)
+
+        print("\nSource and Timestamps Hidden.")
+        print("------------------------------------------")
+        # Hide sections
+        self.logger.hide_logs_timestamps(True)
+        self.logger.hide_logs_source(True)
+        # Print logs
+        self.logger.error("Error message here.")
+        self.logger.warning("Warning message here.")
+        self.logger.info("Info message here.")
+        self.logger.debug("Debug message here.")
+        # Show sections
+        self.logger.hide_logs_timestamps(False)
+        self.logger.hide_logs_timestamps(False)
 
     # --------------------------------------------------------------------------
     def deprecation_demo(self):
@@ -46,6 +105,11 @@ def main():
     print("Start of Nominal Demo")
     print("==========================================\n")
     test.nominal_demo()
+
+    print("\n==========================================")
+    print("Start of Showing/Hiding Fields Demo")
+    print("==========================================\n")
+    test.hiding_fields_demo()
 
     print("\n==========================================")
     print("Start of Deprecation Demo")
