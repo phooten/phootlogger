@@ -64,10 +64,10 @@ run 'tree' at the top of the repo:
 ├── src
 │   ├── demo.py
 │   └── phootlogger
-│       ├── __init__.py
-│       └── logger.py
+│       ├── __init__.py
+│       └── logger.py
 └── tests
-    └── phootlogger.py
+    └── phootlogger
         └── test_logger.py
 ```
 

@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [ v0.0.2 ]
 ### Changed
-- Cleaning up python syntax, adding annotations, and updating comments
-- Deprecating methods for name changes
+- Cleaning up python syntax, adding annotations, and updating comments.
 
 ### Added
-- Unit Tests for logger
+- Unit Tests for logger.
+- Deprecation warnings methods / classes no longer being used.
+- Ability to show / hide fields: 'timestamps' and 'source ( class / method name )'.
+
+### Removed
+- Deprecating methods for name changes and for refactoring
 
 ## [ v0.0.1 ]
 ### Added
