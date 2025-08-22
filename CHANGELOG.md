@@ -13,6 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Unit Tests for logger
 
-## [ b0.0.1 ]
+## [ v0.0.1 ]
 ### Added
 - Changelog to mark the start of versioning.

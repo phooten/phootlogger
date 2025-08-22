@@ -1,20 +1,30 @@
-# Modules
+################################################################################
+#
+# Filename: logger.py
+#
+# Purpose:  Class create a logger and use generally across many python projects
+#
+################################################################################
 
 # External imports
-import re
-import inspect
 from pathlib import Path
 import datetime;
+import inspect
+import re
 
 ################################################################################
-class messages:
+class Logger:
+    """
+    Description:    This class can be instantiated in a python project and report
+                    consistent logs with timestamps, function names, and classes
+    """
     # --------------------------------------------------------------------------
-    def __init__(self, file_name):
+    def __init__(self):
         self._max_character_length = 10
         self._message_type = "UNKNOWN"
         self._user_message = "UNKNOWN"
         self._file_name = "UNKNOWN"
-        self._set_file_name(file_name)
+        self._set_file_name("/path/to/file_name")
 
     # --------------------------------------------------------------------------
     def error(self, msg) -> None:
@@ -25,10 +35,10 @@ class messages:
         """
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
-        filename = module.__file__
-        funcname = module.__name__
+        file_name = module.__file__
+        function_name = module.__name__
 
-        if not self._print_user_message( filename, funcname, "ERROR", msg ):
+        if not self._print_user_message( file_name, function_name, "ERROR", msg ):
             self.quit_script()
 
     # --------------------------------------------------------------------------
@@ -41,10 +51,10 @@ class messages:
 
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
-        filename = module.__file__
-        funcname = module.__name__
+        file_name = module.__file__
+        function_name = module.__name__
 
-        if not self._print_user_message(filename, funcname,"WARNING", msg):
+        if not self._print_user_message(file_name, function_name,"WARNING", msg):
             self.quit_script()
 
     # --------------------------------------------------------------------------
@@ -58,11 +68,11 @@ class messages:
         # Set information values
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
-        filename = module.__file__
-        funcname = module.__name__
+        file_name = module.__file__
+        function_name = module.__name__
 
         # Try to print the messages
-        if not self._print_user_message(filename, funcname, "INFO", msg):
+        if not self._print_user_message(file_name, function_name, "INFO", msg):
             self.quit_script()
 
         return
@@ -156,7 +166,7 @@ class messages:
         @retval     True
         @retval     False
         """
-        self._user_message = self.getTimeStamp() + ": '" + file_name + "' : '" + func_name + "' : " + self._get_message_type() + message
+        self._user_message = self._get_time_stamp() + ": '" + file_name + "' : '" + func_name + "' : " + self._get_message_type() + message
         return True
 
     # --------------------------------------------------------------------------
@@ -168,15 +178,15 @@ class messages:
         self._file_name = name
 
     # --------------------------------------------------------------------------
-    def _get_file_name( self ) -> str:
+    def _get_file_name(self) -> str:
         return self._file_name
 
     # --------------------------------------------------------------------------
-    def _get_time_stamp( self ) -> str:
+    def _get_time_stamp(self) -> str:
         """!
         @brief
         """
-        ct = str( datetime.datetime.now() )
+        ct = str(datetime.datetime.now())
         return ct
 
 
@@ -189,7 +199,8 @@ class messages:
         """!
         @brief      Notify users this method will be deprecated soon.
         """
-        print("WARNING. This method will soon be DEPRECATED.")
+        caller = inspect.stack()[1].function
+        print(f"WARNING. The method '{caller}' will soon be DEPRECATED.")
 
     # --------------------------------------------------------------------------
     def system(self, msg):
@@ -232,15 +243,21 @@ class messages:
         self._set_file_name(self, name)
 
     # --------------------------------------------------------------------------
-    def getFileName( self ) -> str:
+    def getFileName(self) -> str:
         self._deprecation_warning()
-        self._get_file_name( self )
+        self._get_file_name(self)
 
     # --------------------------------------------------------------------------
-    def getTimeStamp( self ) -> str:
+    def getTimeStamp(self) -> str:
         self._deprecation_warning()
-        self._get_time_stamp( self )
+        self._get_time_stamp(self)
 
 
-
-
+class messages(Logger):
+    def __init__(self):
+        print("*****************************************************************")
+        print("* WARNING:")
+        print("* \tThis class has been DEPRECATED. It's name has been changed to \"Logger\".")
+        print("* \tThis specific instance will soon no longer work.")
+        print("*****************************************************************")
+        super().__init__()
