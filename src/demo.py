@@ -1,19 +1,22 @@
 from phootlogger import logger
 
-msg = logger.messages(__name__)
 
-def testing():
-    msg.error( "error message here." )
-    msg.warning( "warning message here." )
-    msg.system( "normal message here." )
-    msg.quit_script()
-    return
+class Test:
+    def __init__(self):
+        self.msg = logger.messages(__name__)
 
-
+    def nominal_testing(self):
+        """!
+        @brief      This test will show what each output is
+        """
+        self.msg.error("error message here.")
+        self.msg.warning("warning message here.")
+        self.msg.system("normal message here.")
+        self.msg.quit_script()
 
 def main():
-    testing()
-    return
+    test = Test()
+    test.nominal_testing()
 
 if __name__ == "__main__":
     main()

@@ -1,47 +1,42 @@
 # Modules
-import sys
+
+# External imports
 import re
 import inspect
 from pathlib import Path
-# using datetime module
 import datetime;
 
+################################################################################
 class messages:
-
-    def __init__( self, file_name ):
+    # --------------------------------------------------------------------------
+    def __init__(self, file_name):
         self._max_character_length = 10
-        self._message_type = ""
-        self._user_message = ""
-        self._file_name = ""
-        self.setFileName( file_name )
-        return
+        self._message_type = "UNKNOWN"
+        self._user_message = "UNKNOWN"
+        self._file_name = "UNKNOWN"
+        self._set_file_name(file_name)
 
-    def error( self, msg ):
+    # --------------------------------------------------------------------------
+    def error(self, msg) -> None:
         """
-        Description:    Prints out message to the user
-        Arguments:      msg     - (string) to be printed out to user
-                        func_name - (function) function called that figures out what the 
-                                name of the previous funcion is
-        Returns:        Void
+        @brief      Prints out message to the user
+
+        @param      msg(string): Message to be printed out to user
         """
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
         filename = module.__file__
         funcname = module.__name__
 
-        if not self.printUserMessage( filename, funcname, "ERROR", msg ):
+        if not self._print_user_message( filename, funcname, "ERROR", msg ):
             self.quit_script()
 
-        return
+    # --------------------------------------------------------------------------
+    def warning(self, msg) -> None:
+        """!
+        @brief      Prints out message to the user
 
-
-    def warning( self, msg ):
-        """
-        Description:    Prints out message to the user
-        Arguments:      msg     - (string) to be printed out to user
-                        func_name - (function) function called that figures out what the 
-                                name of the previous funcion is
-        Returns:        Void
+        @param      msg(string): Message to be printed out to user
         """
 
         frame = inspect.stack()[1]
@@ -49,116 +44,203 @@ class messages:
         filename = module.__file__
         funcname = module.__name__
 
-        if not self.printUserMessage( filename, funcname,"WARNING", msg ):
+        if not self._print_user_message(filename, funcname,"WARNING", msg):
             self.quit_script()
 
-        return
-
-
-    def system( self, msg ):
+    # --------------------------------------------------------------------------
+    def info(self, msg) -> None:
         """
-        Description:    Prints out message to the user
-        Arguments:      msg     - (string) to be printed out to user
-                        func_name - (function) function called that figures out what the 
-                                name of the previous funcion is
-        Returns:        Void
+        @brief      Prints out message to the user
+
+        @param      msg(string): Message to be printed out to user
         """
 
+        # Set information values
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
         filename = module.__file__
         funcname = module.__name__
-    
-        if not self.printUserMessage( filename, funcname, "SYSTEM", msg ):
+
+        # Try to print the messages
+        if not self._print_user_message(filename, funcname, "INFO", msg):
             self.quit_script()
 
         return
 
-
-    def quit_script( self ):
-
+    # --------------------------------------------------------------------------
+    def quit_script(self):
+        """!
+        @brief
+        """
         print( "Exiting script.")
         exit(1)
 
+    # --------------------------------------------------------------------------
+    def _print_user_message(self, file_name, func_name, msg_type, msg_to_user) -> str:
+        """!
+        @brief
 
-    def printUserMessage( self, file_name, func_name, msg_type, msg_to_user ):
+        @param
+        @param
+        @param
 
+        @retval     True
+        @retval     False
+        """
         # Formats the message type then sets it
-        if not self.setMessageType( msg_type ):
+        if not self._set_message_type(msg_type):
             return False
 
         # replaces all newlines with new lines and a tab
-        msg_to_user = re.sub( "\n", "\n\t\t", msg_to_user )
+        msg_to_user = re.sub("\n", "\n\t\t", msg_to_user)
 
-        self.setUserMessage( file_name, func_name, msg_to_user )
+        self._set_user_message(file_name, func_name, msg_to_user)
 
-        print( self.getUserMessage() )
+        print(self._get_user_message())
 
         return True
 
-
-    def getFileNameAndFunction( self ):
+    # --------------------------------------------------------------------------
+    def _get_file_name_and_function(self):
+        """!
+        @brief
+        """
         caller_path = Path(inspect.stack()[1][1])
         print(f'{caller_path.name}: ')
-        return
 
-
-    def getMessageType( self ):
+    # --------------------------------------------------------------------------
+    def _get_message_type(self):
         return self._message_type
 
+    # --------------------------------------------------------------------------
+    def _set_message_type(self, message_type) -> bool:
+        """!
+        @brief
 
-    def setMessageType( self, message_type ):
-        """
-        Description:    
-        Arguments:      
-        Returns:        
+        @param
+
+        @retval     True
+        @retval     False
         """
 
         # Checks the message length
-        length = len( message_type )
-        if( length > self._max_character_length ):
-            print( __name__ + ": ["+ str( length ) + "] is too many character. Max is [" + max_character_length + "]." )
+        length = len(message_type)
+        if(length > self._max_character_length):
+            print(__name__ + ": ["+ str( length ) + "] is too many character. Max is [" + self._max_character_length + "].")
             return False
 
         # Sets everything to spaces, with one extra space for a ':' at the end
         formatted_message_type = ""
-        for curr in range( self._max_character_length + 1 ):
+        for curr in range(self._max_character_length + 1):
             formatted_message_type += " "
 
         # Formats the message type
-        for curr in range( len( message_type ) ):
-            formatted_message_type = formatted_message_type[ :curr ] +  message_type[ curr ] + formatted_message_type[ curr+1: ]
+        for curr in range(len(message_type)):
+            formatted_message_type = formatted_message_type[:curr] +  message_type[curr] + formatted_message_type[curr+1:]
 
-        formatted_message_type = formatted_message_type[ :( len( message_type )) ] + ":" + formatted_message_type[ ( len( message_type ) + 1): ]
+        formatted_message_type = formatted_message_type[:(len(message_type))] + ":" + formatted_message_type[(len(message_type) + 1):]
 
         self._message_type = formatted_message_type
 
         return True
 
+    # --------------------------------------------------------------------------
+    def _set_user_message(self, file_name, func_name, message) -> bool:
+        """!
+        @brief
 
-    def setUserMessage( self, file_name, func_name, message ):
+        @param
+        @param
+        @param
+
+        @retval     True
+        @retval     False
         """
-        Description:    
-        Arguments:      
-        Returns:        
-        """
-
-        self._user_message = self.getTimeStamp() + ": '" + file_name + "' : '" + func_name + "' : " + self.getMessageType() + message
-
+        self._user_message = self.getTimeStamp() + ": '" + file_name + "' : '" + func_name + "' : " + self._get_message_type() + message
         return True
 
-    def getUserMessage( self ):
+    # --------------------------------------------------------------------------
+    def _get_user_message(self) -> str:
         return self._user_message
 
-    def setFileName( self, name ):
+    # --------------------------------------------------------------------------
+    def _set_file_name(self, name) -> None:
         self._file_name = name
-        return
 
-    def getFileName( self ):
+    # --------------------------------------------------------------------------
+    def _get_file_name( self ) -> str:
         return self._file_name
 
-    def getTimeStamp( self ):
+    # --------------------------------------------------------------------------
+    def _get_time_stamp( self ) -> str:
+        """!
+        @brief
+        """
         ct = str( datetime.datetime.now() )
-        #print( "timestamp: " + ct + "\n" )
-
         return ct
+
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!! DEPRECATION WARNING SECTION
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    # --------------------------------------------------------------------------
+    def _deprecation_warning(self):
+        """!
+        @brief      Notify users this method will be deprecated soon.
+        """
+        print("WARNING. This method will soon be DEPRECATED.")
+
+    # --------------------------------------------------------------------------
+    def system(self, msg):
+        self._deprecation_warning()
+        self.info(msg)
+
+    # --------------------------------------------------------------------------
+    def printUserMessage(self, file_name, func_name, msg_type, msg_to_user) -> str:
+        self._deprecation_warning()
+        self._print_user_message(self, file_name, func_name, msg_type, msg_to_user)
+
+    # --------------------------------------------------------------------------
+    def getFileNameAndFunction(self):
+        self._deprecation_warning()
+        self._get_file_name_and_function()
+
+    # --------------------------------------------------------------------------
+    def getMessageType(self):
+        self._deprecation_warning()
+        self._get_message_type(self)
+
+    # --------------------------------------------------------------------------
+    def setMessageType(self, message_type) -> bool:
+        self._deprecation_warning()
+        self._set_message_type(self, message_type)
+
+    # --------------------------------------------------------------------------
+    def setUserMessage(self, file_name, func_name, message) -> bool:
+        self._deprecation_warning()
+        self._set_user_message(self, file_name, func_name, message)
+
+    # --------------------------------------------------------------------------
+    def getUserMessage(self) -> str:
+        self._deprecation_warning()
+        self._get_user_message(self)
+
+    # --------------------------------------------------------------------------
+    def setFileName(self, name) -> None:
+        self._deprecation_warning()
+        self._set_file_name(self, name)
+
+    # --------------------------------------------------------------------------
+    def getFileName( self ) -> str:
+        self._deprecation_warning()
+        self._get_file_name( self )
+
+    # --------------------------------------------------------------------------
+    def getTimeStamp( self ) -> str:
+        self._deprecation_warning()
+        self._get_time_stamp( self )
+
+
+
+
