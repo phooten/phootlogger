@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock, ANY
 import datetime
 import inspect
 import pytest
-import re
+import os
 
 # Internal Import
 from phootlogger.logger import MessageBuilder  # Adjust import as needed
@@ -15,13 +15,6 @@ def logger_fixture():
 @pytest.fixture
 def message_builder_fixture():
     return MessageBuilder()
-
-class DummyCaller:
-    def __init__(self):
-        self.logger = Logger()
-
-    def trigger_context(self):
-        return self.logger._get_caller_context()
 
 # Off-nominal: Called from static method (no self)
 class StaticCaller:
@@ -36,9 +29,26 @@ def global_trigger(logger):
     return logger._get_caller_context()
 
 class TestLogger:
+    @patch('inspect.stack')
+    def test_set_owner_filepath(self, mock_stack, logger_fixture):
+        """!
+        @brief      Test nominal usage of set_owner_filepath
+        """
+        # Arrange
+        mock_frame = MagicMock()
+        mock_frame.filename = '/fake/path/to/logger.py'
+        mock_stack.return_value = [None, mock_frame]  # [0] is current frame, [1] is caller
+
+        # Act
+        logger_fixture.set_owner_filepath()
+
+        # Assert
+        expected_path = os.path.abspath('/fake/path/to/logger.py')
+        assert logger_fixture.owner_filepath == expected_path
+
     def test_info_successful_log(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify nominal run of 'info' method
         """
         with patch.object(logger_fixture, '_print_user_message', return_value=True) as mock_print:
             expected_message = "Info Test message"
@@ -47,7 +57,7 @@ class TestLogger:
 
     def test_info_failed_log_triggers_quit(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify offnominal run of 'info' method
         """
         with patch.object(logger_fixture, '_print_user_message', return_value=False), \
              patch.object(logger_fixture, 'quit_script') as mock_quit, \
@@ -58,7 +68,7 @@ class TestLogger:
 
     def test_warning_successful_log(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify nominal run of 'warning' method
         """
         with patch.object(logger_fixture, '_print_user_message', return_value=True) as mock_print:
             expected_message = "Warning Test message"
@@ -67,7 +77,7 @@ class TestLogger:
 
     def test_warning_failed_log_triggers_quit(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify offnominal run of 'warning' method
         """
         with patch.object(logger_fixture, '_print_user_message', return_value=False), \
              patch.object(logger_fixture, 'quit_script') as mock_quit, \
@@ -78,7 +88,7 @@ class TestLogger:
 
     def test_error_successful_log(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify nominal run of 'error' method
         """
         with patch.object(logger_fixture, '_print_user_message', return_value=True) as mock_print:
             expected_message = "Error Test message"
@@ -87,7 +97,7 @@ class TestLogger:
 
     def test_error_failed_log_triggers_quit(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify offnominal run of 'error' method
         """
         with patch.object(logger_fixture, '_print_user_message', return_value=False), \
              patch.object(logger_fixture, 'quit_script') as mock_quit, \
@@ -98,7 +108,7 @@ class TestLogger:
 
     def test_debug_successful_log(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify nominal run of 'debug' method
         """
         original_state = logger_fixture._debug_mode
         logger_fixture.set_debug_mode(True)
@@ -112,7 +122,7 @@ class TestLogger:
 
     def test_debug_successful_log_hidden(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify when not in debug mode, 'debug' method won't be called
         """
         original_state = logger_fixture._debug_mode
         logger_fixture.set_debug_mode(False)
@@ -125,7 +135,7 @@ class TestLogger:
 
     def test_debug_failed_log_triggers_quit(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify offnominal run of 'debug' method
         """
         original_state = logger_fixture._debug_mode
         logger_fixture.set_debug_mode(True)
@@ -141,37 +151,36 @@ class TestLogger:
 
 
     def test_quit_script_calls_exit_and_prints(self, logger_fixture):
-        # Mock timestamp and exit
-        logger_fixture._get_time_stamp = lambda: "2025-08-22 18:45:00"
-
+        """!
+        @brief      Verify nominal run of 'quit_script' method
+        """
         with patch("builtins.print") as mock_print, patch("builtins.exit") as mock_exit:
             logger_fixture.quit_script()
 
         mock_print.assert_called_once_with("Exiting script.")
         mock_exit.assert_called_once_with(1)
 
-    def test_quit_script_uses_timestamp(self, logger_fixture):
-        with patch.object(logger_fixture, "_get_time_stamp", return_value="mocked-ts") as mock_ts, \
-             patch("builtins.exit"), \
-             patch("builtins.print"):
-            logger_fixture.quit_script()
-
-        mock_ts.assert_called_once()
-
-
     def test_nominal_class_and_method_detected(self):
         """!
-        @brief
+        @brief      Verify '_get_caller_context' returns the proper class and method name
         """
+        class DummyCaller:
+            def __init__(self):
+                self.logger = Logger()
+
+            def trigger_context(self):
+                return self.logger._get_caller_context()
+
         caller = DummyCaller()
         class_name, method_name = caller.trigger_context()
         assert class_name == "DummyCaller"
         assert method_name == "trigger_context"
 
-    # Nominal: Called directly from test function
+    # Nominal:
     def test_nominal_direct_call(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify when '_get_caller_context' is called directly, the
+                    proper class / method name is returned
         """
         class_name, method_name = logger_fixture._get_caller_context()
         assert class_name == "TestLogger"
@@ -180,7 +189,8 @@ class TestLogger:
 
     def test_off_nominal_static_method(self):
         """!
-        @brief
+        @brief      Verify when '_get_caller_context' is called from a static
+                    caller, the proper class / method name is returned
         """
         class_name, method_name = StaticCaller.static_trigger()
         assert class_name is None
@@ -188,26 +198,17 @@ class TestLogger:
 
     def test_off_nominal_global_function(self, logger_fixture):
         """!
-        @brief
+        @brief      Verify when '_get_caller_context' is called from a global
+                    caller, the proper class / method name is returned
         """
         class_name, method_name = global_trigger(logger_fixture)
         assert class_name is None
         assert method_name == "global_trigger"
 
-    # Off-nominal: Called from within logger itself
-    def test_off_nominal_internal_logger_call(self, logger_fixture):
-        """!
-        @brief
-        """
-        # Simulate internal call chain
-        class_name, method_name = logger_fixture._get_caller_context()
-        # Should skip internal frames and return test function
-        assert method_name.startswith("test_")
-
-    # Defensive: Max depth exceeded
     def test_off_nominal_max_depth_safeguard(self):
         """!
-        @brief
+        @brief      Verifies when '_get_caller_context' max depth exceeded,
+                    None is returned
         """
         class SafeLogger(Logger):
             def _get_caller_context(self, max_depth=1):
@@ -226,7 +227,8 @@ class TestLogger:
 
     def test_print_user_message_nominal(self, logger_fixture):
         """!
-        @brief
+        @brief      Verifies when '_print_user_message' is called, the expected
+                    methods are called an successfully executed
         """
         logger_fixture.owner_filepath = "/path/to/owner"
 
@@ -257,7 +259,8 @@ class TestLogger:
 
     def test_print_user_message_missing_context(self, logger_fixture):
         """!
-        @brief
+        @brief      Verifies when '_print_user_message' is called but context is
+                    missing, the message still is printed out
         """
         logger_fixture.owner_filepath = "/path/to/owner"
 
@@ -278,7 +281,8 @@ class TestLogger:
     @pytest.mark.parametrize("msg_type", ["INFO", "DEBUG", "ERROR", "WARNING"])
     def test_print_user_message_varied_types(self, logger_fixture, msg_type):
         """!
-        @brief
+        @brief      Verifies when '_print_user_message' is called with each type
+                    of msg type, they properly appear in the in the logs
         """
         logger_fixture.owner_filepath = "owner.txt"
         logger_fixture._get_caller_context = MagicMock(return_value=("Caller", "caller_method"))
@@ -298,7 +302,8 @@ class TestLogger:
 
     def test_get_time_stamp_returns_expected_format(self, logger_fixture):
         """!
-        @brief
+        @brief      Verifies when '_get_time_stamp' is called, the proper string
+                    is returned
         """
         fixed_time = datetime.datetime(2025, 8, 22, 18, 41, 0)
         expected = str(fixed_time)
@@ -313,14 +318,15 @@ class TestLogger:
 
     def test_get_time_stamp_is_string(self, logger_fixture):
         """!
-        @brief
+        @brief      Verifies when '_get_time_stamp' is called, a string is returned
         """
         result = logger_fixture._get_time_stamp()
         assert isinstance(result, str)
 
     def test_get_time_stamp_changes_over_time(self, logger_fixture):
         """!
-        @brief
+        @brief      Verifies multiple calls to '_get_time_stamp' will show updates
+                    overtime
         """
         first = logger_fixture._get_time_stamp()
         second = logger_fixture._get_time_stamp()
@@ -330,6 +336,10 @@ class TestLogger:
 class TestMessageBuilder:
 
     def test_default_formatting(self, message_builder_fixture):
+        """!
+        @brief      Verifies when 'build_log_string' is called, it contains
+                    all the expected inputs
+        """
         result = message_builder_fixture.build_log_string(
             time_stamp="2025-08-22 18:45:00",
             message_type="INFO",
@@ -346,6 +356,10 @@ class TestMessageBuilder:
         assert "Hello, world!" in result
 
     def test_hide_source_flag(self, message_builder_fixture):
+        """
+        @brief      Verifies when 'build_log_string' is called but the source
+                    flag is set to hidden, the string doesn't contain the source
+        """
         message_builder_fixture.set_hide_source(True)
 
         result = message_builder_fixture.build_log_string(
@@ -362,6 +376,10 @@ class TestMessageBuilder:
         assert "No source shown" in result
 
     def test_hide_timestamps_flag(self, message_builder_fixture):
+        """
+        @brief      Verifies when 'build_log_string' is called but the timestamp
+                    flag is set to hidden, the string doesn't contain the timestamp
+        """
         message_builder_fixture.set_hide_timestamps(True)
 
         result = message_builder_fixture.build_log_string(
@@ -377,6 +395,10 @@ class TestMessageBuilder:
         assert "[ERROR]" in result
 
     def test_hide_owner_flag(self, message_builder_fixture):
+        """
+        @brief      Verifies when 'build_log_string' is called but the owner
+                    flag is set to hidden, the string doesn't contain the owner
+        """
         message_builder_fixture.set_hide_owner(False)
 
         result = message_builder_fixture.build_log_string(
@@ -392,6 +414,10 @@ class TestMessageBuilder:
         assert "[WARNING]" in result
 
     def test_multiline_message_formatting(self, message_builder_fixture):
+        """
+        @brief      Verifies when 'build_log_string' is called with multiple
+                    lines in the messages, the output contains proper formatting
+        """
         multiline_message = "Line one\nLine two\nLine three"
         result = message_builder_fixture.build_log_string(
             time_stamp="2025-08-22 18:45:00",

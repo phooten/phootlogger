@@ -7,6 +7,7 @@
 ################################################################################
 
 # External imports
+from typing import Tuple
 import datetime
 import inspect
 import os
@@ -14,9 +15,9 @@ import re
 
 ################################################################################
 class Logger:
-    """
-    Description:    This class can be instantiated in a python project and report
-                    consistent logs with timestamps, function names, and classes
+    """!
+    @brief      This class can be instantiated in a python project and report
+                consistent logs with timestamps, function names, and classes
     """
     # --------------------------------------------------------------------------
     def __init__(self):
@@ -26,20 +27,29 @@ class Logger:
         self.mb.set_hide_timestamps(False)
         self.mb.set_hide_owner(True)
 
+        # Setting up logger flags
+        self._debug_mode = False
+
+        # Setup owner file
+        self.set_owner_filepath()
+
+    # --------------------------------------------------------------------------
+    def set_owner_filepath(self) -> None:
+        """!
+        @brief      Determines the file path of where this logger was instantiated.
+                    Values is set internally to this class
+        """
         # Determine the file that initialized the logger
         frame_info = inspect.stack()[1]
         filepath = frame_info.filename
         self.owner_filepath = os.path.abspath(filepath)
 
-        # Setting up logger flags
-        self._debug_mode = False
-
     # --------------------------------------------------------------------------
     def info(self, msg) -> None:
         """
-        @brief      Prints out message to the user
+        @brief      Prints out Informational message to the user
 
-        @param      msg(string): Message to be printed out to user
+        @param      msg (string): Message to be printed out to user
         """
         # Get time stamp as soon as this is called
         ts = self._get_time_stamp()
@@ -52,9 +62,9 @@ class Logger:
     # --------------------------------------------------------------------------
     def warning(self, msg) -> None:
         """!
-        @brief      Prints out message to the user
+        @brief      Prints out warning message to the user
 
-        @param      msg(string): Message to be printed out to user
+        @param      msg (string): Message to be printed out to user
         """
         # Get time stamp as soon as this is called
         ts = self._get_time_stamp()
@@ -66,9 +76,9 @@ class Logger:
     # --------------------------------------------------------------------------
     def error(self, msg) -> None:
         """
-        @brief      Prints out message to the user
+        @brief      Prints out Error message to the user
 
-        @param      msg(string): Message to be printed out to user
+        @param      msg (string): Message to be printed out to user
         """
         # Get time stamp as soon as this is called
         ts = self._get_time_stamp()
@@ -80,9 +90,10 @@ class Logger:
     # --------------------------------------------------------------------------
     def debug(self, msg) -> None:
         """!
-        @brief      Prints out message to the user
+        @brief      Prints out debug message to the user. This is only shown
+                    when the logger is set to debug mode
 
-        @param      msg(string): Message to be printed out to user
+        @param      msg (string): Message to be printed out to user
         """
         if self._debug_mode:
             # Get time stamp as soon as this is called
@@ -93,39 +104,52 @@ class Logger:
                 self.quit_script()
 
     # --------------------------------------------------------------------------
-    def quit_script(self):
+    def quit_script(self) -> None:
         """!
-        @brief
+        @brief  Will print a message and ungracefully exit with 1
         """
-        # Get time stamp as soon as this is called
-        ts = self._get_time_stamp()
-
         print("Exiting script.")
         exit(1)
 
     # --------------------------------------------------------------------------
-    def set_debug_mode(self, debug_mode=True):
+    def set_debug_mode(self, debug_mode=True) -> None:
         """!
-        @brief
+        @brief  When enabled, will print out debugging messages
+
+        @param  debug_mode (bool): State to set the debug mode to. ( True = Debug, False = No debug )
         """
         self._debug_mode = debug_mode
 
     # --------------------------------------------------------------------------
-    def hide_logs_timestamps(self, hide_timestamps=False):
+    def hide_logs_timestamps(self, hide_timestamps=False) -> None:
+        """!
+        @brief  Will show or hide the timestamps printed out based on this state
+        """
         self.mb.set_hide_timestamps(hide_timestamps)
 
     # --------------------------------------------------------------------------
-    def hide_logs_source(self, hide_source=False):
+    def hide_logs_source(self, hide_source=False) -> None:
+        """!
+        @brief  Will show or hide the source ( class / method names) printed out
+                based on this state
+        """
         self.mb.set_hide_source(hide_source)
 
     # --------------------------------------------------------------------------
-    def hide_logs_owner(self, hide_owner=True):
+    def hide_logs_owner(self, hide_owner=True) -> None:
+        """!
+        @brief  Will show or hide the file that owns the log instantiation,
+                printed out based on this state
+        """
         self.mb.set_hide_owner(hide_owner)
 
     # --------------------------------------------------------------------------
-    def _get_caller_context(self):
+    def _get_caller_context(self) -> Tuple[str, str]:
         """!
         @brief      Extract the calling class and method name
+
+        @returns    Tuple:  class_name(str):  Name of the class calling the log
+                            method_name(str): Name of the method calling the log
         """
         frame = inspect.currentframe()
         logger_class = self.__class__
@@ -155,27 +179,28 @@ class Logger:
         return class_name, method_name
 
     # --------------------------------------------------------------------------
-    def _print_user_message(self, message_type, message_to_user, time_stamp) -> bool:
+    def _print_user_message(self, message_type: str, message_to_user: str, time_stamp: str) -> bool:
         """!
-        @brief
+        @brief      Prints out the message after everything is set
 
-        @param      message_type
-        @param      message_to_user
-        @param      time_stamp
+        @param      message_type (str): Type of message to be displayed.
+                                        i.e. "ERROR", "INFO", "DEBUG", etc.
+        @param      message_to_user (str): Message to be directly displayed to the user
+        @param      time_stamp (str): Time stamp of the message
 
-        @retval     True
-        @retval     False
+        @retval     True:   Always
+        @retval     False:  Never
         """
         # Get the calling methods
         class_name, method_name = self._get_caller_context()
 
         # Build the string
         formatted_message = self.mb.build_log_string(time_stamp=time_stamp,
-                                                     message_type=message_type,
+                                                     owner=self.owner_filepath,
                                                      class_name=class_name,
                                                      method_name=method_name,
-                                                     message_to_user=message_to_user,
-                                                     owner=self.owner_filepath)
+                                                     message_type=message_type,
+                                                     message_to_user=message_to_user)
 
         print(formatted_message)
         return True
@@ -183,10 +208,12 @@ class Logger:
     # --------------------------------------------------------------------------
     def _get_time_stamp(self) -> str:
         """!
-        @brief
+        @brief      Gets the current time
+
+        @returns    (str): Current time in the format: 'YYYY-mm-DD HH:MM:SS.ssssss'
         """
-        ct = str(datetime.datetime.now())
-        return ct
+        current_time = str(datetime.datetime.now())
+        return current_time
 
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -275,7 +302,8 @@ class messages(Logger):
 ################################################################################
 class MessageBuilder:
     """!
-    @brief
+    @brief  This class is to extract the messiness of building the logs. It
+            does all the formatting of the string to be printed out
     """
     # --------------------------------------------------------------------------
     def __init__(self):
@@ -289,32 +317,49 @@ class MessageBuilder:
     # --------------------------------------------------------------------------
     def set_hide_source(self, hide_source=False):
         """!
-        @brief
+        @brief  Will show or hide the timestamps printed out based on this state
         """
         self.hide_source = hide_source
 
     # --------------------------------------------------------------------------
     def set_hide_timestamps(self, hide_timestamps=False):
         """!
-        @brief
+        @brief  Will show or hide the source ( class / method names) printed out
+                based on this state
         """
         self.hide_timestamps = hide_timestamps
 
     # --------------------------------------------------------------------------
     def set_hide_owner(self, hide_owner=True):
         """!
-        @brief
+        @brief  Will show or hide the file that owns the log instantiation,
+                printed out based on this state
         """
         self.hide_owner = hide_owner
 
     # --------------------------------------------------------------------------
-    def build_log_string(self, time_stamp, message_type, class_name, method_name, message_to_user, owner) -> str:
+    def build_log_string(self,
+                         time_stamp: str,
+                         owner: str,
+                         class_name: str,
+                         method_name: str,
+                         message_type: str,
+                         message_to_user ) -> str:
         """!
-        @brief
+        @brief  Builds the string to be output to the terminal
+
+        @param  time_stamp (str): time stamp of when the log was called
+        @param  owner (str): Name of the file that instantiated the logger
+        @param  class_name (str): Name of the class calling the log method
+        @param  method_name (str): Name of the method calling the log method
+        @param  message_type (str): type of message. i.e. ERROR, INFO, DEBUG, etc.
+        @param  message_to_user (str): main message to be shown to the user
+
+        @returns Formatted string to be printed out. Example
         """
         # String will look like:
-        #   Time                         What called it               Message Type        Message
-        #   <YYYY-MM-DD HH:MM:SS TZ>    : <class_name>:<method_name> : <TYPE>  : <message>
+        #   time_stamp                     owner          class_name.method_name       message_type message_to_user
+        #   <YYYY-MM-DD HH:MM:SS.ssssss> : <owner_file> : <class_name>:<method_name> : <TYPE> : <message>
 
         # Timestamp: 22 characters
         f_time_stamp = f"{time_stamp:<25}"
@@ -350,7 +395,7 @@ class MessageBuilder:
         if not self.hide_source:
             final_string += f"{f_source} : "
 
-        # Bareminimum logs show error type and message
+        # Bare minimum logs show error type and message
         final_string += f"{f_message_type} : {f_message_to_user}"
 
         return final_string
