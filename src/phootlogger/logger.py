@@ -127,14 +127,26 @@ class Logger:
         """!
         @brief      Extract the calling class and method name
         """
-        # Skip _get_caller_context, _print_user_message, and log message
-        frame = inspect.currentframe().f_back.f_back.f_back
-        method_name = frame.f_code.co_name
-        class_name = None
+        frame = inspect.currentframe()
+        logger_class = self.__class__
 
-        # Determine classname
-        if 'self' in frame.f_locals:
-            class_name = frame.f_locals["self"].__class__.__name__
+        # Track frames back to the caller
+        while frame:
+            frame = frame.f_back
+            if not frame:
+                break
+
+            # Skip frames from within the logger class
+            if 'self' in frame.f_locals:
+                caller_self = frame.f_locals['self']
+                if isinstance(caller_self, logger_class):
+                    continue
+                class_name = caller_self.__class__.__name__
+            else:
+                class_name = None
+
+            method_name = frame.f_code.co_name
+            return class_name, method_name
 
         # Print a warning
         if not method_name or not class_name:
