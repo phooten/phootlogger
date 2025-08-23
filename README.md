@@ -2,9 +2,6 @@
 The purpose of this library is to provide a logger for my other projects. It also
 is acting as a learning process for publishing a python module.
 
-# TODO:
-- sort out the proper file / function printing
-
 # Messages Package
 This is a package that can be included in projects to output messages
 
