@@ -10,7 +10,27 @@ This is a package that can be included in projects to output messages
 
 Example logging REPO: https://github.com/srtamrakar/python-logger/tree/master
 
-# Installation Process:
+# Repository structure
+```bash
+run 'tree' at the top of the repo:
+.
+├── CHANGELOG.md
+├── LICENSE
+├── README.md
+├── pyproject.toml
+├── requirements.txt
+├── setup.py
+├── src
+│   ├── demo.py
+│   └── phootlogger
+│       ├── __init__.py
+│       └── logger.py
+└── tests
+    └── phootlogger
+        └── test_logger.py
+```
+
+## Installation Process:
 ```bash
 #=======================
 # 1. Write the module
@@ -50,29 +70,22 @@ python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phoot
 python3 -m pip install phootlogger
 ```
 
-
-# Repository structure
+## Testing
+### Unit Tests
 ```bash
-run 'tree' at the top of the repo:
-.
-├── CHANGELOG.md
-├── LICENSE
-├── README.md
-├── pyproject.toml
-├── requirements.txt
-├── setup.py
-├── src
-│   ├── demo.py
-│   └── phootlogger
-│       ├── __init__.py
-│       └── logger.py
-└── tests
-    └── phootlogger
-        └── test_logger.py
+# From the top level directory, run the command
+pytest --cov=src/. tests/
 ```
 
+### Running the demo
+```bash
+# A demo file can be found in src/demo.py
 
-### Questions:
+# To run it and see examples of the feature, run the following
+python demo.py
+```
+
+# Questions:
     setup.cfg:
 
     setup.py:

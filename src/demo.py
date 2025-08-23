@@ -29,14 +29,16 @@ class Test:
         """
         self.logger.set_debug_mode(True)
 
-        print("\nNo fields hidden.")
+        print("\n------------------------------------------")
+        print("No fields hidden.")
         print("------------------------------------------")
         self.logger.error("Error message here.")
         self.logger.warning("Warning message here.")
         self.logger.info("Info message here.")
         self.logger.debug("Debug message here.")
 
-        print("\nTimestamps hidden.")
+        print("\n------------------------------------------")
+        print("Timestamps hidden.")
         print("------------------------------------------")
         # Hide section
         self.logger.hide_logs_timestamps(True)
@@ -48,8 +50,8 @@ class Test:
         # Show section
         self.logger.hide_logs_timestamps(False)
 
-
-        print("\nSource ( class/method name ) Hidden.")
+        print("\n------------------------------------------")
+        print("Source ( class/method name ) Hidden.")
         print("------------------------------------------")
         # Hide section
         self.logger.hide_logs_source(True)
@@ -61,7 +63,8 @@ class Test:
         # Show section
         self.logger.hide_logs_timestamps(False)
 
-        print("\nSource and Timestamps Hidden.")
+        print("\n------------------------------------------")
+        print("Source and Timestamps Hidden.")
         print("------------------------------------------")
         # Hide sections
         self.logger.hide_logs_timestamps(True)
@@ -73,7 +76,21 @@ class Test:
         self.logger.debug("Debug message here.")
         # Show sections
         self.logger.hide_logs_timestamps(False)
-        self.logger.hide_logs_timestamps(False)
+        self.logger.hide_logs_source(False)
+
+        print("\n------------------------------------------")
+        print("Owner Shown.")
+        print("------------------------------------------")
+        # Show section
+        self.logger.hide_logs_owner(False)
+        # Print logs
+        self.logger.error("Error message here.")
+        self.logger.warning("Warning message here.")
+        self.logger.info("Info message here.")
+        self.logger.debug("Debug message here.")
+        # Hide section
+        self.logger.hide_logs_owner(True)
+
 
     # --------------------------------------------------------------------------
     def deprecation_demo(self):

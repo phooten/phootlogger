@@ -7,8 +7,9 @@
 ################################################################################
 
 # External imports
-import datetime;
+import datetime
 import inspect
+import os
 import re
 
 ################################################################################
@@ -19,18 +20,19 @@ class Logger:
     """
     # --------------------------------------------------------------------------
     def __init__(self):
-        self._max_character_length = 10
-        self._message_type = "UNKNOWN"
-        self._user_message = "UNKNOWN"
-
         # Set up default log format
         self.mb = MessageBuilder()
         self.mb.set_hide_source(False)
         self.mb.set_hide_timestamps(False)
+        self.mb.set_hide_owner(True)
 
-        # Setting up flags
-        self._debug_on = False
-        self._show_time = False
+        # Determine the file that initialized the logger
+        frame_info = inspect.stack()[1]
+        filepath = frame_info.filename
+        self.owner_filepath = os.path.abspath(filepath)
+
+        # Setting up logger flags
+        self._debug_mode = False
 
     # --------------------------------------------------------------------------
     def info(self, msg) -> None:
@@ -82,10 +84,10 @@ class Logger:
 
         @param      msg(string): Message to be printed out to user
         """
-        # Get time stamp as soon as this is called
-        ts = self._get_time_stamp()
+        if self._debug_mode:
+            # Get time stamp as soon as this is called
+            ts = self._get_time_stamp()
 
-        if self._debug_on:
             if not self._print_user_message("DEBUG", msg, ts):
                 print("Issue with DEBUG log.")
                 self.quit_script()
@@ -106,7 +108,7 @@ class Logger:
         """!
         @brief
         """
-        self._debug_on = debug_mode
+        self._debug_mode = debug_mode
 
     # --------------------------------------------------------------------------
     def hide_logs_timestamps(self, hide_timestamps=False):
@@ -115,6 +117,10 @@ class Logger:
     # --------------------------------------------------------------------------
     def hide_logs_source(self, hide_source=False):
         self.mb.set_hide_source(hide_source)
+
+    # --------------------------------------------------------------------------
+    def hide_logs_owner(self, hide_owner=True):
+        self.mb.set_hide_owner(hide_owner)
 
     # --------------------------------------------------------------------------
     def _get_caller_context(self):
@@ -156,7 +162,8 @@ class Logger:
                                                      message_type=message_type,
                                                      class_name=class_name,
                                                      method_name=method_name,
-                                                     message_to_user=message_to_user)
+                                                     message_to_user=message_to_user,
+                                                     owner=self.owner_filepath)
 
         print(formatted_message)
         return True
@@ -261,8 +268,11 @@ class MessageBuilder:
     # --------------------------------------------------------------------------
     def __init__(self):
         # Flags to decide what to display
-        self.hide_source = True
-        self.hide_timestamps = True
+        self.hide_source = False
+        self.hide_timestamps = False
+
+        # Meant to be extra info, but will look messy
+        self.hide_owner = True
 
     # --------------------------------------------------------------------------
     def set_hide_source(self, hide_source=False):
@@ -279,7 +289,14 @@ class MessageBuilder:
         self.hide_timestamps = hide_timestamps
 
     # --------------------------------------------------------------------------
-    def build_log_string(self, time_stamp, message_type, class_name, method_name, message_to_user) -> str:
+    def set_hide_owner(self, hide_owner=True):
+        """!
+        @brief
+        """
+        self.hide_owner = hide_owner
+
+    # --------------------------------------------------------------------------
+    def build_log_string(self, time_stamp, message_type, class_name, method_name, message_to_user, owner) -> str:
         """!
         @brief
         """
@@ -287,18 +304,21 @@ class MessageBuilder:
         #   Time                         What called it               Message Type        Message
         #   <YYYY-MM-DD HH:MM:SS TZ>    : <class_name>:<method_name> : <TYPE>  : <message>
 
-        # 22 characters
+        # Timestamp: 22 characters
         f_time_stamp = f"{time_stamp:<25}"
 
-        # 8 characters exactly
+        # Message Type: 8 characters
         f_message_type = f"[{message_type}]"
         f_message_type = f"{f_message_type:<9}"
 
-        # 40 characters exactly
+        # Class / Method Name: 40 characters
         f_class_name = class_name
         f_method_name = method_name
         f_source = f"{f_class_name}.{f_method_name}"
         f_source = f"{f_source:<25}"
+
+        # Owner of the logger
+        f_owner = f"{owner:<12}"
 
         # Format message
         f_message_to_user = re.sub(r"\n", "\n\t\t", message_to_user)
@@ -309,6 +329,10 @@ class MessageBuilder:
         # If user wants to show time stamp
         if not self.hide_timestamps:
             final_string += f"{f_time_stamp} : "
+
+        # If user wants to show owner of the logger
+        if not self.hide_owner:
+            final_string += f"{f_owner} : "
 
         # If user wants to show source
         if not self.hide_source:
