@@ -1,3 +1,5 @@
 pip==23.3.1
 pandas==2.1.3
-phootlogger==0.0.1
+phootlogger==0.1.0
+pytest==8.4.1
+pytest-cov==6.2.1

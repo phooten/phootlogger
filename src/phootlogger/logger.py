@@ -1,164 +1,401 @@
-# Modules
-import sys
-import re
+################################################################################
+#
+# Filename: logger.py
+#
+# Purpose:  Class create a logger and use generally across many python projects
+#
+################################################################################
+
+# External imports
+from typing import Tuple
+import datetime
 import inspect
-from pathlib import Path
-# using datetime module
-import datetime;
+import os
+import re
 
-class messages:
+################################################################################
+class Logger:
+    """!
+    @brief      This class can be instantiated in a python project and report
+                consistent logs with timestamps, function names, and classes
+    """
+    # --------------------------------------------------------------------------
+    def __init__(self):
+        # Set up default log format
+        self.mb = MessageBuilder()
+        self.mb.set_hide_source(False)
+        self.mb.set_hide_timestamps(False)
+        self.mb.set_hide_owner(True)
 
-    def __init__( self, file_name ):
-        self._max_character_length = 10
-        self._message_type = ""
-        self._user_message = ""
-        self._file_name = ""
-        self.setFileName( file_name )
-        return
+        # Setting up logger flags
+        self._debug_mode = False
 
-    def error( self, msg ):
+        # Setup owner file
+        self.set_owner_filepath()
+
+    # --------------------------------------------------------------------------
+    def set_owner_filepath(self) -> None:
+        """!
+        @brief      Determines the file path of where this logger was instantiated.
+                    Values is set internally to this class
         """
-        Description:    Prints out message to the user
-        Arguments:      msg     - (string) to be printed out to user
-                        func_name - (function) function called that figures out what the 
-                                name of the previous funcion is
-        Returns:        Void
-        """
-        frame = inspect.stack()[1]
-        module = inspect.getmodule(frame[0])
-        filename = module.__file__
-        funcname = module.__name__
+        # Determine the file that initialized the logger
+        frame_info = inspect.stack()[1]
+        filepath = frame_info.filename
+        self.owner_filepath = os.path.abspath(filepath)
 
-        if not self.printUserMessage( filename, funcname, "ERROR", msg ):
+    # --------------------------------------------------------------------------
+    def info(self, msg) -> None:
+        """
+        @brief      Prints out Informational message to the user
+
+        @param      msg (string): Message to be printed out to user
+        """
+        # Get time stamp as soon as this is called
+        ts = self._get_time_stamp()
+
+        # Try to print the messages
+        if not self._print_user_message("INFO", msg, ts):
+            print("Issue with INFO log.")
             self.quit_script()
 
-        return
+    # --------------------------------------------------------------------------
+    def warning(self, msg) -> None:
+        """!
+        @brief      Prints out warning message to the user
 
-
-    def warning( self, msg ):
+        @param      msg (string): Message to be printed out to user
         """
-        Description:    Prints out message to the user
-        Arguments:      msg     - (string) to be printed out to user
-                        func_name - (function) function called that figures out what the 
-                                name of the previous funcion is
-        Returns:        Void
-        """
+        # Get time stamp as soon as this is called
+        ts = self._get_time_stamp()
 
-        frame = inspect.stack()[1]
-        module = inspect.getmodule(frame[0])
-        filename = module.__file__
-        funcname = module.__name__
-
-        if not self.printUserMessage( filename, funcname,"WARNING", msg ):
+        if not self._print_user_message("WARNING", msg, ts):
+            print("Issue with WARNING log.")
             self.quit_script()
 
-        return
-
-
-    def system( self, msg ):
+    # --------------------------------------------------------------------------
+    def error(self, msg) -> None:
         """
-        Description:    Prints out message to the user
-        Arguments:      msg     - (string) to be printed out to user
-                        func_name - (function) function called that figures out what the 
-                                name of the previous funcion is
-        Returns:        Void
-        """
+        @brief      Prints out Error message to the user
 
-        frame = inspect.stack()[1]
-        module = inspect.getmodule(frame[0])
-        filename = module.__file__
-        funcname = module.__name__
-    
-        if not self.printUserMessage( filename, funcname, "SYSTEM", msg ):
+        @param      msg (string): Message to be printed out to user
+        """
+        # Get time stamp as soon as this is called
+        ts = self._get_time_stamp()
+
+        if not self._print_user_message("ERROR", msg, ts):
+            print("Issue with ERROR log.")
             self.quit_script()
 
-        return
+    # --------------------------------------------------------------------------
+    def debug(self, msg) -> None:
+        """!
+        @brief      Prints out debug message to the user. This is only shown
+                    when the logger is set to debug mode
 
+        @param      msg (string): Message to be printed out to user
+        """
+        if self._debug_mode:
+            # Get time stamp as soon as this is called
+            ts = self._get_time_stamp()
 
-    def quit_script( self ):
+            if not self._print_user_message("DEBUG", msg, ts):
+                print("Issue with DEBUG log.")
+                self.quit_script()
 
-        print( "Exiting script.")
+    # --------------------------------------------------------------------------
+    def quit_script(self) -> None:
+        """!
+        @brief  Will print a message and ungracefully exit with 1
+        """
+        print("Exiting script.")
         exit(1)
 
+    # --------------------------------------------------------------------------
+    def set_debug_mode(self, debug_mode=True) -> None:
+        """!
+        @brief  When enabled, will print out debugging messages
 
-    def printUserMessage( self, file_name, func_name, msg_type, msg_to_user ):
+        @param  debug_mode (bool): State to set the debug mode to. ( True = Debug, False = No debug )
+        """
+        self._debug_mode = debug_mode
 
-        # Formats the message type then sets it
-        if not self.setMessageType( msg_type ):
-            return False
+    # --------------------------------------------------------------------------
+    def hide_logs_timestamps(self, hide_timestamps=False) -> None:
+        """!
+        @brief  Will show or hide the timestamps printed out based on this state
+        """
+        self.mb.set_hide_timestamps(hide_timestamps)
 
-        # replaces all newlines with new lines and a tab
-        msg_to_user = re.sub( "\n", "\n\t\t", msg_to_user )
+    # --------------------------------------------------------------------------
+    def hide_logs_source(self, hide_source=False) -> None:
+        """!
+        @brief  Will show or hide the source ( class / method names) printed out
+                based on this state
+        """
+        self.mb.set_hide_source(hide_source)
 
-        self.setUserMessage( file_name, func_name, msg_to_user )
+    # --------------------------------------------------------------------------
+    def hide_logs_owner(self, hide_owner=True) -> None:
+        """!
+        @brief  Will show or hide the file that owns the log instantiation,
+                printed out based on this state
+        """
+        self.mb.set_hide_owner(hide_owner)
 
-        print( self.getUserMessage() )
+    # --------------------------------------------------------------------------
+    def _get_caller_context(self) -> Tuple[str, str]:
+        """!
+        @brief      Extract the calling class and method name
 
+        @returns    Tuple:  class_name(str):  Name of the class calling the log
+                            method_name(str): Name of the method calling the log
+        """
+        frame = inspect.currentframe()
+        logger_class = self.__class__
+
+        # Track frames back to the caller
+        while frame:
+            frame = frame.f_back
+            if not frame:
+                break
+
+            # Skip frames from within the logger class
+            if 'self' in frame.f_locals:
+                caller_self = frame.f_locals['self']
+                if isinstance(caller_self, logger_class):
+                    continue
+                class_name = caller_self.__class__.__name__
+            else:
+                class_name = None
+
+            method_name = frame.f_code.co_name
+            return class_name, method_name
+
+        # Print a warning
+        if not method_name or not class_name:
+            print("WARNING. Method name or Class name not found from logger.")
+
+        return class_name, method_name
+
+    # --------------------------------------------------------------------------
+    def _print_user_message(self, message_type: str, message_to_user: str, time_stamp: str) -> bool:
+        """!
+        @brief      Prints out the message after everything is set
+
+        @param      message_type (str): Type of message to be displayed.
+                                        i.e. "ERROR", "INFO", "DEBUG", etc.
+        @param      message_to_user (str): Message to be directly displayed to the user
+        @param      time_stamp (str): Time stamp of the message
+
+        @retval     True:   Always
+        @retval     False:  Never
+        """
+        # Get the calling methods
+        class_name, method_name = self._get_caller_context()
+
+        # Build the string
+        formatted_message = self.mb.build_log_string(time_stamp=time_stamp,
+                                                     owner=self.owner_filepath,
+                                                     class_name=class_name,
+                                                     method_name=method_name,
+                                                     message_type=message_type,
+                                                     message_to_user=message_to_user)
+
+        print(formatted_message)
         return True
 
+    # --------------------------------------------------------------------------
+    def _get_time_stamp(self) -> str:
+        """!
+        @brief      Gets the current time
 
-    def getFileNameAndFunction( self ):
-        caller_path = Path(inspect.stack()[1][1])
-        print(f'{caller_path.name}: ')
-        return
-
-
-    def getMessageType( self ):
-        return self._message_type
-
-
-    def setMessageType( self, message_type ):
+        @returns    (str): Current time in the format: 'YYYY-mm-DD HH:MM:SS.ssssss'
         """
-        Description:    
-        Arguments:      
-        Returns:        
+        current_time = str(datetime.datetime.now())
+        return current_time
+
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # !!! START OF DEPRECATION WARNING SECTION
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    # --------------------------------------------------------------------------
+    def _deprecation_warning(self, immediate=False):
+        """!
+        @brief      Notify users this method will be deprecated soon.
         """
+        # Pass the soon or immediate deprecation
+        time = "will soon"
+        if immediate:
+            time = "has been"
 
-        # Checks the message length
-        length = len( message_type )
-        if( length > self._max_character_length ):
-            print( __name__ + ": ["+ str( length ) + "] is too many character. Max is [" + max_character_length + "]." )
-            return False
+        # Determine the method and print out
+        caller = inspect.stack()[1].function
+        print(f"WARNING. The method '{caller}' {time} DEPRECATED.")
 
-        # Sets everything to spaces, with one extra space for a ':' at the end
-        formatted_message_type = ""
-        for curr in range( self._max_character_length + 1 ):
-            formatted_message_type += " "
+    # --------------------------------------------------------------------------
+    def system(self, msg):
+        self._deprecation_warning()
+        self.info(msg)
 
-        # Formats the message type
-        for curr in range( len( message_type ) ):
-            formatted_message_type = formatted_message_type[ :curr ] +  message_type[ curr ] + formatted_message_type[ curr+1: ]
+    # --------------------------------------------------------------------------
+    def printUserMessage(self, file_name, func_name, msg_type, msg_to_user) -> str:
+        self._deprecation_warning()
+        #  No longer used: file_name, func_name
+        self._print_user_message(self, msg_type, msg_to_user)
 
-        formatted_message_type = formatted_message_type[ :( len( message_type )) ] + ":" + formatted_message_type[ ( len( message_type ) + 1): ]
+    # --------------------------------------------------------------------------
+    def getFileNameAndFunction(self):
+        self._deprecation_warning(immediate=True)
+        # self._get_file_name_and_function()
 
-        self._message_type = formatted_message_type
+    # --------------------------------------------------------------------------
+    def getMessageType(self):
+        self._deprecation_warning(immediate=True)
+        # self._get_message_type(self)
 
-        return True
+    # --------------------------------------------------------------------------
+    def setMessageType(self, message_type) -> bool:
+        self._deprecation_warning(immediate=True)
+        # self._set_message_type(self, message_type)
+
+    # --------------------------------------------------------------------------
+    def setUserMessage(self, file_name, func_name, message) -> bool:
+        self._deprecation_warning(immediate=True)
+        # self._set_user_message(self, file_name, func_name, message)
+
+    # --------------------------------------------------------------------------
+    def getUserMessage(self) -> str:
+        self._deprecation_warning(immediate=True)
+        # self._get_user_message(self)
+
+    # --------------------------------------------------------------------------
+    def setFileName(self, name) -> None:
+        self._deprecation_warning(immediate=True)
+        # self._set_file_name(self, name)
+
+    # --------------------------------------------------------------------------
+    def getFileName(self) -> str:
+        self._deprecation_warning(immediate=True)
+        # self._get_file_name(self)
+
+    # --------------------------------------------------------------------------
+    def getTimeStamp(self) -> str:
+        self._deprecation_warning()
+        self._get_time_stamp(self)
 
 
-    def setUserMessage( self, file_name, func_name, message ):
+class messages(Logger):
+    def __init__(self):
+        print("*****************************************************************")
+        print("* WARNING:")
+        print("* \tThis class has been DEPRECATED. It's name has been changed to \"Logger\".")
+        print("* \tThis specific instance will soon no longer work.")
+        print("*****************************************************************")
+        super().__init__()
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!! END OF DEPRECATION WARNING SECTION
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+################################################################################
+class MessageBuilder:
+    """!
+    @brief  This class is to extract the messiness of building the logs. It
+            does all the formatting of the string to be printed out
+    """
+    # --------------------------------------------------------------------------
+    def __init__(self):
+        # Flags to decide what to display
+        self.hide_source = False
+        self.hide_timestamps = False
+
+        # Meant to be extra info, but will look messy
+        self.hide_owner = True
+
+    # --------------------------------------------------------------------------
+    def set_hide_source(self, hide_source=False):
+        """!
+        @brief  Will show or hide the timestamps printed out based on this state
         """
-        Description:    
-        Arguments:      
-        Returns:        
+        self.hide_source = hide_source
+
+    # --------------------------------------------------------------------------
+    def set_hide_timestamps(self, hide_timestamps=False):
+        """!
+        @brief  Will show or hide the source ( class / method names) printed out
+                based on this state
         """
+        self.hide_timestamps = hide_timestamps
 
-        self._user_message = self.getTimeStamp() + ": '" + file_name + "' : '" + func_name + "' : " + self.getMessageType() + message
+    # --------------------------------------------------------------------------
+    def set_hide_owner(self, hide_owner=True):
+        """!
+        @brief  Will show or hide the file that owns the log instantiation,
+                printed out based on this state
+        """
+        self.hide_owner = hide_owner
 
-        return True
+    # --------------------------------------------------------------------------
+    def build_log_string(self,
+                         time_stamp: str,
+                         owner: str,
+                         class_name: str,
+                         method_name: str,
+                         message_type: str,
+                         message_to_user ) -> str:
+        """!
+        @brief  Builds the string to be output to the terminal
 
-    def getUserMessage( self ):
-        return self._user_message
+        @param  time_stamp (str): time stamp of when the log was called
+        @param  owner (str): Name of the file that instantiated the logger
+        @param  class_name (str): Name of the class calling the log method
+        @param  method_name (str): Name of the method calling the log method
+        @param  message_type (str): type of message. i.e. ERROR, INFO, DEBUG, etc.
+        @param  message_to_user (str): main message to be shown to the user
 
-    def setFileName( self, name ):
-        self._file_name = name
-        return
+        @returns Formatted string to be printed out. Example
+        """
+        # String will look like:
+        #   time_stamp                     owner          class_name.method_name       message_type message_to_user
+        #   <YYYY-MM-DD HH:MM:SS.ssssss> : <owner_file> : <class_name>:<method_name> : <TYPE> : <message>
 
-    def getFileName( self ):
-        return self._file_name
+        # Timestamp: 22 characters
+        f_time_stamp = f"{time_stamp:<25}"
 
-    def getTimeStamp( self ):
-        ct = str( datetime.datetime.now() )
-        #print( "timestamp: " + ct + "\n" )
+        # Message Type: 8 characters
+        f_message_type = f"[{message_type}]"
+        f_message_type = f"{f_message_type:<9}"
 
-        return ct
+        # Class / Method Name: 40 characters
+        f_class_name = class_name
+        f_method_name = method_name
+        f_source = f"{f_class_name}.{f_method_name}"
+        f_source = f"{f_source:<25}"
+
+        # Owner of the logger
+        f_owner = f"{owner:<12}"
+
+        # Format message
+        f_message_to_user = re.sub(r"\n", "\n\t\t", message_to_user)
+
+        # Build final string
+        final_string = ""
+
+        # If user wants to show time stamp
+        if not self.hide_timestamps:
+            final_string += f"{f_time_stamp} : "
+
+        # If user wants to show owner of the logger
+        if not self.hide_owner:
+            final_string += f"{f_owner} : "
+
+        # If user wants to show source
+        if not self.hide_source:
+            final_string += f"{f_source} : "
+
+        # Bare minimum logs show error type and message
+        final_string += f"{f_message_type} : {f_message_to_user}"
+
+        return final_string
