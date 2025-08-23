@@ -51,11 +51,11 @@ $ python3 -m build
 # Make sure twin is installed
 $ python3 -m pip install --upgrade twine
 
-# Upload to test server:
-$ python3 -m twine upload --repository testpypi dist/* --verbose
+# Upload to test server ( https://test.pypi.org/project/phootlogger/ ):
+$ python3 -m twine upload --repository phootlogger-test dist/* --verbose
 
-# Upload to real server:
-$ python3 -m twine upload dist/* --verbose
+# Upload to real server ( https://pypi.org/project/phootlogger/ ):
+$ python3 -m twine upload --repository phootlogger dist/* --verbose
 
 #=======================
 # 4. Install the module:
