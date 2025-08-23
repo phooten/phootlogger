@@ -45,36 +45,36 @@ run 'tree' at the top of the repo:
 #=======================
 # 2. Build module
 #=======================
-python3 -m pip install --upgrade build
-python3 -m build
+$ python3 -m pip install --upgrade build
+$ python3 -m build
 
 #=======================
 # 3. Upload module to pypi to be installed
 #=======================
 # Make sure twin is installed
-python3 -m pip install --upgrade twine
+$ python3 -m pip install --upgrade twine
 
 # Upload to test server:
-python3 -m twine upload --repository testpypi dist/* --verbose
+$ python3 -m twine upload --repository testpypi dist/* --verbose
 
 # Upload to real server:
-python3 -m twine upload dist/* --verbose
+$ python3 -m twine upload dist/* --verbose
 
 #=======================
 # 4. Install the module:
 #=======================
 # Test Installation
-python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phootlogger
+$ python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps phootlogger
 
 # Real installation
-python3 -m pip install phootlogger
+$ python3 -m pip install phootlogger
 ```
 
 ## Testing
 ### Unit Tests
 ```bash
 # From the top level directory, run the command
-pytest --cov=src/. tests/
+$ pytest --cov=src/. tests/
 ```
 
 ### Running the demo
@@ -82,7 +82,81 @@ pytest --cov=src/. tests/
 # A demo file can be found in src/demo.py
 
 # To run it and see examples of the feature, run the following
-python demo.py
+$ python demo.py
+
+# ==========================================
+# Output:
+# ==========================================
+# ==========================================
+# Start of Nominal Demo
+# ==========================================
+#
+# 2025-08-22 18:48:11.150962 : Test.nominal_demo         : [ERROR]   : Error message here.
+# 2025-08-22 18:48:11.151044 : Test.nominal_demo         : [WARNING] : Warning message here.
+# 2025-08-22 18:48:11.151064 : Test.nominal_demo         : [INFO]    : Info message here.
+# 2025-08-22 18:48:11.151085 : Test.nominal_demo         : [DEBUG]   : Debug message here.
+#
+# ==========================================
+# Start of Showing/Hiding Fields Demo
+# ==========================================
+#
+#
+# ------------------------------------------
+# No fields hidden.
+# ------------------------------------------
+# 2025-08-22 18:48:11.151110 : Test.hiding_fields_demo   : [ERROR]   : Error message here.
+# 2025-08-22 18:48:11.151117 : Test.hiding_fields_demo   : [WARNING] : Warning message here.
+# 2025-08-22 18:48:11.151122 : Test.hiding_fields_demo   : [INFO]    : Info message here.
+# 2025-08-22 18:48:11.151129 : Test.hiding_fields_demo   : [DEBUG]   : Debug message here.
+#
+# ------------------------------------------
+# Timestamps hidden.
+# ------------------------------------------
+# Test.hiding_fields_demo   : [ERROR]   : Error message here.
+# Test.hiding_fields_demo   : [WARNING] : Warning message here.
+# Test.hiding_fields_demo   : [INFO]    : Info message here.
+# Test.hiding_fields_demo   : [DEBUG]   : Debug message here.
+#
+# ------------------------------------------
+# Source ( class/method name ) Hidden.
+# ------------------------------------------
+# 2025-08-22 18:48:11.151215 : [ERROR]   : Error message here.
+# 2025-08-22 18:48:11.151219 : [WARNING] : Warning message here.
+# 2025-08-22 18:48:11.151223 : [INFO]    : Info message here.
+# 2025-08-22 18:48:11.151227 : [DEBUG]   : Debug message here.
+#
+# ------------------------------------------
+# Source and Timestamps Hidden.
+# ------------------------------------------
+# [ERROR]   : Error message here.
+# [WARNING] : Warning message here.
+# [INFO]    : Info message here.
+# [DEBUG]   : Debug message here.
+#
+# ------------------------------------------
+# Owner Shown.
+# ------------------------------------------
+# 2025-08-22 18:48:11.151252 : /example/path/to/phootlogger/src/demo.py : Test.hiding_fields_demo   : [ERROR]   : Error $ message here.
+# 2025-08-22 18:48:11.151257 : /example/path/to/phootlogger/src/demo.py : Test.hiding_fields_demo   : [WARNING] : Warning $ message here.
+# 2025-08-22 18:48:11.151260 : /example/path/to/phootlogger/src/demo.py : Test.hiding_fields_demo   : [INFO]    : Info $ $ message here.
+# 2025-08-22 18:48:11.151264 : /example/path/to/phootlogger/src/demo.py : Test.hiding_fields_demo   : [DEBUG]   : Debug $ message here.
+#
+# ==========================================
+# Start of Deprecation Demo
+# ==========================================
+#
+# *****************************************************************
+# * WARNING:
+# *       This class has been DEPRECATED. It's name has been changed to "Logger".
+# *       This specific instance will soon no longer work.
+# *****************************************************************
+# 2025-08-22 18:48:11.156938 : Test.deprecation_demo     : [ERROR]   : error message here.
+# WARNING. The method 'system' will soon DEPRECATED.
+# 2025-08-22 18:48:11.160526 : Test.deprecation_demo     : [INFO]    : normal message here.
+#
+# ==========================================
+# Start of Quit Script Demo
+# ==========================================
 ```
 
 # Questions:
