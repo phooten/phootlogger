@@ -2,6 +2,29 @@
 The purpose of this library is to provide a logger for my other projects. It also
 is acting as a learning process for publishing a python module.
 
+## Current Capabilities
+- Output system messages with the following data:
+    Time stamps:
+        When the log method was called. This can be hidden.
+    Owner:
+        The path to the file that is calling the logger method
+    Class Name + Method Name:
+        From the calling class.method. This can be hidden.
+    Log Type:
+        INFO - For informational purposes
+        WARNING - For warning purposes
+        ERROR - For Error purposes
+        DEBUG - Can be set or disabled with class method
+        quit_script - stops the program with exit(1)
+
+## Future Improvements
+- Log File:
+    Output logs to a file based on user input, default path, or object initialization
+- Logger Sync:
+    Common logger across program rather than one per class
+- Order preference:
+    Ordering of information based on user input or object initialization
+
 # Messages Package
 This is a package that can be included in projects to output messages
 
