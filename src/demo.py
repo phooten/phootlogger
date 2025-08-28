@@ -1,11 +1,12 @@
-from phootlogger import logger
+from phootlogger.logger import Logger
 
 
 ################################################################################
 class Test:
     # --------------------------------------------------------------------------
     def __init__(self):
-        self.logger = logger.Logger()
+        Logger().configure("DEMO")
+        self.logger = Logger().get_instance()
 
     # --------------------------------------------------------------------------
     def nominal_demo(self):
@@ -79,17 +80,17 @@ class Test:
         self.logger.hide_logs_source(False)
 
         print("\n------------------------------------------")
-        print("Owner Shown.")
+        print("Calling File Shown.")
         print("------------------------------------------")
         # Show section
-        self.logger.hide_logs_owner(False)
+        self.logger.hide_logs_calling_file(False)
         # Print logs
         self.logger.error("Error message here.")
         self.logger.warning("Warning message here.")
         self.logger.info("Info message here.")
         self.logger.debug("Debug message here.")
         # Hide section
-        self.logger.hide_logs_owner(True)
+        self.logger.hide_logs_calling_file(True)
 
 
     # --------------------------------------------------------------------------
@@ -98,13 +99,13 @@ class Test:
         @brief      This test will what deprecation warnings look like
         """
         # Initializing a deprecated class
-        msg = logger.messages()
+        msg = self.logger.get_instance()
 
         # Nominal methods still work
         msg.error("error message here.")
 
         # Deprecated method still works but will see a warning
-        msg.system("normal message here.")
+        msg.info("normal message here.")
 
     # --------------------------------------------------------------------------
     def quit_script_demo(self):

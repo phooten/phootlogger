@@ -6,6 +6,9 @@
 #
 ################################################################################
 
+# External imports
+import re
+
 ################################################################################
 class MessageBuilder:
     """!
@@ -19,7 +22,7 @@ class MessageBuilder:
         self.hide_timestamps = False
 
         # Meant to be extra info, but will look messy
-        self.hide_owner = True
+        self.hide_calling_file = True
 
     # --------------------------------------------------------------------------
     def set_hide_source(self, hide_source=False):
@@ -37,17 +40,17 @@ class MessageBuilder:
         self.hide_timestamps = hide_timestamps
 
     # --------------------------------------------------------------------------
-    def set_hide_owner(self, hide_owner=True):
+    def set_hide_calling_file(self, hide_calling_file=True):
         """!
         @brief  Will show or hide the file that owns the log instantiation,
                 printed out based on this state
         """
-        self.hide_owner = hide_owner
+        self.hide_calling_file = hide_calling_file
 
     # --------------------------------------------------------------------------
     def build_log_string(self,
                          time_stamp: str,
-                         owner: str,
+                         calling_file: str,
                          class_name: str,
                          method_name: str,
                          message_type: str,
@@ -56,7 +59,7 @@ class MessageBuilder:
         @brief  Builds the string to be output to the terminal
 
         @param  time_stamp (str): time stamp of when the log was called
-        @param  owner (str): Name of the file that instantiated the logger
+        @param  calling_file (str): Name of the file that called the logger method
         @param  class_name (str): Name of the class calling the log method
         @param  method_name (str): Name of the method calling the log method
         @param  message_type (str): type of message. i.e. ERROR, INFO, DEBUG, etc.
@@ -65,8 +68,8 @@ class MessageBuilder:
         @returns Formatted string to be printed out. Example
         """
         # String will look like:
-        #   time_stamp                     owner          class_name.method_name       message_type message_to_user
-        #   <YYYY-MM-DD HH:MM:SS.ssssss> : <owner_file> : <class_name>:<method_name> : <TYPE> : <message>
+        #   time_stamp                     calling_file          class_name.method_name       message_type message_to_user
+        #   <YYYY-MM-DD HH:MM:SS.ssssss> : <calling_file_file> : <class_name>:<method_name> : <TYPE> : <message>
 
         # Timestamp: 22 characters
         f_time_stamp = f"{time_stamp:<25}"
@@ -81,8 +84,8 @@ class MessageBuilder:
         f_source = f"{f_class_name}.{f_method_name}"
         f_source = f"{f_source:<25}"
 
-        # Owner of the logger
-        f_owner = f"{owner:<12}"
+        # calling_file of the logger
+        f_calling_file = f"{calling_file:<12}"
 
         # Format message
         f_message_to_user = re.sub(r"\n", "\n\t\t", message_to_user)
@@ -94,9 +97,9 @@ class MessageBuilder:
         if not self.hide_timestamps:
             final_string += f"{f_time_stamp} : "
 
-        # If user wants to show owner of the logger
-        if not self.hide_owner:
-            final_string += f"{f_owner} : "
+        # If user wants to show calling_file of the logger
+        if not self.hide_calling_file:
+            final_string += f"{f_calling_file} : "
 
         # If user wants to show source
         if not self.hide_source:
